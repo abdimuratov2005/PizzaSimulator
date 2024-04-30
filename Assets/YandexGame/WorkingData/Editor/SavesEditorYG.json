@@ -1,0 +1,19 @@
+{
+    "idSave": 522,
+    "isFirstSession": false,
+    "language": "en",
+    "promptDone": false,
+    "money": 1,
+    "newPlayerName": "Hello!",
+    "openLevels": [
+        false,
+        true,
+        false
+    ],
+    "coins": 64,
+    "players": 1,
+    "health": 3,
+    "score": 80,
+    "level": 1,
+    "graphicQuality": 2
+}
