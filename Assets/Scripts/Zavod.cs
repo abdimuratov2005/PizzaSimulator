@@ -31,9 +31,7 @@ public class Zavod : MonoCache
 
         if (getItemsList.Count > 0)
         {
-
             lastChild = getItemsList[^1];
-
             if (!spawnItemPaused)
             {
                 timer += Time.deltaTime;
