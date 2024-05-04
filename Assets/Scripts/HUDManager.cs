@@ -14,7 +14,7 @@ public class HUDManager : MonoCache
     private GameManager gameManager;
     private AudioController audioController;
     // public Image[] soundIcons;
-    // public GameObject joysticks;
+    public GameObject joysticks;
     // public ButtonHandler[] buttonHandler;
     private bool volumeOn = true;
 
@@ -77,11 +77,6 @@ public class HUDManager : MonoCache
     }
 
     public void PlayButton() {
-        if (YandexGame.EnvironmentData.deviceType == "mobile" || YandexGame.EnvironmentData.deviceType == "tablet") {
-            // joysticks.SetActive(true);
-        } else {
-            // joysticks.SetActive(false);
-        }
         StaticCanvasCoin.gameObject.SetActive(false);
         gameManager.totalLevelCoin = 0;
         gameManager.score = 0;

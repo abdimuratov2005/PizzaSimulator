@@ -1,9 +1,10 @@
+using NTC.MonoCache;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YG;
 
-public class InternationalText : MonoBehaviour
+public class InternationalText : MonoCache
 {
     [SerializeField] string _en;
     [SerializeField] string _ru;

@@ -1,10 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
-using NTC.MonoCache;
 using UnityEngine;
+using Utils;
 
-public class PlayerController : MonoCache
+public class PlayerController : TransformUtils
 {
     [Header("Model")]
     public GameObject model;
@@ -14,8 +12,10 @@ public class PlayerController : MonoCache
     [SerializeField] public float moveSpeed = 1f;
     [SerializeField] public float rotationSpeed = 1f;
     [SerializeField] public bool isDead = false;
+    [SerializeField] public Vector3 offset;
     private CharacterController _character;
     private Animator _animator;
+    private Matrix4x4 _isometricInputMatrix;
 
     [Space(2)] 
     [Header("Iventory")]
@@ -29,27 +29,28 @@ public class PlayerController : MonoCache
     [Space(2)] 
     [Header("Input Info")]
     [SerializeField] Vector3 _velocity;
+    [SerializeField] Quaternion _look;
     [SerializeField] Vector2 _move;
 
     private void Awake() {
+        _isometricInputMatrix = Matrix4x4.Rotate(Quaternion.Euler(0f, 45f, 0f));
         _character = GetComponent<CharacterController>();
         _animator = model.GetComponent<Animator>();
     }
-
     protected override void Run()
     {
         #region Player Movement
-        _move = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        _velocity = new Vector3(_move.x, 0, _move.y);
-
+        var _xInput = SimpleInput.GetAxis("Horizontal");
+        var _yInput = SimpleInput.GetAxis("Vertical");
+        _move = new Vector2(_xInput, _yInput);
+        _velocity = _isometricInputMatrix.MultiplyPoint3x4(new Vector3(_move.x, 0.0f, _move.y));
         _animator.SetFloat("Move", _move.magnitude);
 
         if (_velocity.magnitude > 0)
         {
-            float angle = Mathf.Atan2(_move.x, _move.y) * Mathf.Rad2Deg;
-            Vector3 targetDirection = new Vector3(0, angle, 0);
-            Quaternion targetRotation = Quaternion.Euler(targetDirection);
-            model.transform.rotation = Quaternion.RotateTowards(model.transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            var relative = (transform.position + _velocity) - transform.position;
+            _look = Quaternion.LookRotation(relative, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, _look, Time.deltaTime * rotationSpeed).normalized;
             _character.Move(moveSpeed * Time.deltaTime * _velocity);
         }
         #endregion
@@ -69,14 +70,24 @@ public class PlayerController : MonoCache
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.GetComponent<Zavod>())
+        if (other.GetComponent<Zavod>())
         {
-            ZavodMethod(other.gameObject.GetComponent<Zavod>());
+            other.GetComponent<Zavod>().playerStaying = true;
+            ZavodMethod(other.GetComponent<Zavod>());
         }
 
-        if (other.gameObject.GetComponent<AutoZavod>())
+        if (other.GetComponent<AutoZavod>())
         {
-            AutoZavodMethod(other.gameObject.GetComponent<AutoZavod>());
+
+            AutoZavodMethod(other.GetComponent<AutoZavod>());
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.GetComponent<Zavod>())
+        {
+            other.GetComponent<Zavod>().playerStaying = false;
         }
     }
 
@@ -98,10 +109,14 @@ public class PlayerController : MonoCache
             {
                 if (zavod.getItemPaused) return;
 
+
                 var getLastItem = items[^1];
                 zavod.getItemsList.Add(getLastItem);
                 getLastItem.SetParent(zavod.getItemPoint);
-                TransformItem(zavod.getItemsList, getLastItem.transform);
+                TransformItem(zavod.getItemsList, getLastItem.transform, () =>
+                {
+                    isLocked = false;
+                });
                 items.Remove(getLastItem);
             }
         }
@@ -120,25 +135,11 @@ public class PlayerController : MonoCache
                 items.Add(item);
                 item.FreezeRigibody();
                 item.SetParent(inventory.transform);
-                TransformItem(items, item.transform);
+                TransformItem(items, item.transform, () =>
+                {
+                    isLocked = false;
+                });
             }
         }
-    }
-
-    void SetItem(Zavod zavod)
-    {
-        
-    }
-
-    void TransformItem(List<Item> items, Transform item)
-    {
-        var scale = item.localScale;
-        item
-            .DOLocalMove(new Vector3(0, items.Count * scale.y, 0), 0.2f)
-            .OnComplete(() =>
-            {
-                isLocked = false;
-            })
-            .SetLink(item.gameObject);
     }
 }

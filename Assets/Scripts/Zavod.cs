@@ -9,6 +9,7 @@ public class Zavod : MonoCache
     public Transform getItemPoint;
     public int getMaxItem = 5;
     public bool getItemPaused = false;
+    public bool playerStaying = false;
 
     [Space(2)]
     [Header("Spawn New Item")]

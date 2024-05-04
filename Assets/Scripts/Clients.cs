@@ -1,29 +1,50 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using Utils;
 
-public class Clients : MonoBehaviour
+public class Clients : TransformUtils
 {
     public List<Transform> stulPoints;
+    public List<Transform> returnPoints;
     public Zavod currentZavod;
-    public List<NPSClient> npcClients;
-    public NPSClient npcClient;
+    public List<NPSClient> npcClientsBuyer;
+    public List<NPSClient> npcClientsBought;
     public Transform clientPoint;
 
-    private void Start()
+    public void UpdateCurrentTargets(NPSClient client, List<Item> items, Transform currentTarget, NavMeshAgent agent)
     {
-        StartCoroutine(SpawnClients());
-    }
-
-    IEnumerator SpawnClients()
-    {
-        yield return new WaitForSeconds(5);
-        if (npcClients.Count < 5)
+        if (client.countItem > 0)
         {
-            GameObject go = Instantiate(npcClient.gameObject, Vector3.zero, Quaternion.identity);
-            npcClients.Add(go.GetComponent<NPSClient>());
-            go.transform.SetParent(clientPoint);
-            StartCoroutine(SpawnClients());
+            var newPos = currentTarget.position;
+            newPos.z -= npcClientsBuyer.IndexOf(client) + 1;
+            agent.SetDestination(newPos);
+
+            if (Vector3.Distance(newPos, transform.position) < 0.5f)
+            {
+                agent.isStopped = true;
+            }
+            if (agent.isStopped)
+            {
+                /*transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, Vector3.zero, 1);*/
+            }
+        }
+        else
+        {
+            agent.SetDestination(currentTarget.position);
+            if (agent.remainingDistance < 0.1f && !client.onTable)
+            {
+                var table = client.stol.GetComponentInParent<Table>();
+                foreach (var handItem in items) {
+                    table.items.Add(handItem);
+                    handItem.SetParent(table.transform);
+                    TransformItem(table.items, handItem.transform, () =>
+                    {
+                        handItem.transform.rotation = Quaternion.identity;
+                    });
+                }
+                client.onTable = true;
+            }
         }
     }
 }
