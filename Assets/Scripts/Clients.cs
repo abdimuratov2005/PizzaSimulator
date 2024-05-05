@@ -17,7 +17,7 @@ public class Clients : TransformUtils
         if (client.countItem > 0)
         {
             var newPos = currentTarget.position;
-            newPos.z -= npcClientsBuyer.IndexOf(client) + 1;
+            newPos.x += npcClientsBuyer.IndexOf(client) + 1;
             agent.SetDestination(newPos);
 
             if (Vector3.Distance(newPos, transform.position) < 0.5f)

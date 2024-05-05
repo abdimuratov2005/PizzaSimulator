@@ -27,7 +27,7 @@ public class NPSClient : TransformUtils
     public Transform stol;
 
     private float timer = 0;
-    public float timeToBuy = 3;
+    public float timeToBuy = 1;
     public float timeToTable = 5;
     public Transform itemPoint;
     private bool buying = false;

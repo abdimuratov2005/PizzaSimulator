@@ -1128,7 +1128,7 @@ MonoBehaviour:
   npcState: 0
   handItem: {fileID: 0}
   stol: {fileID: 0}
-  timeToBuy: 3
+  timeToBuy: 1
   timeToTable: 5
   itemPoint: {fileID: 8735208906586085815}
   onTable: 0
