@@ -5,5 +5,4 @@ public class AudioController : MonoCache
 {
     public AudioClip[] audioClips;
     public AudioSource audioSource;
-
 }

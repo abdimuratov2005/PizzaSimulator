@@ -18,12 +18,7 @@ namespace YG
 
         // Ваши сохранения
 
-        public int coins = 0;
-        public int players = 1;
-        public int health = 3;
-        public int score = 0;
-        public int level = 1;
-        public int graphicQuality = 2;
+        public int coins = 100;
 
         // Поля (сохранения) можно удалять и создавать новые. При обновлении игры сохранения ломаться не должны
 

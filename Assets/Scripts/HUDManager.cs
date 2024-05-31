@@ -1,22 +1,24 @@
-using System.Collections;
 using DG.Tweening;
 using NTC.MonoCache;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using YG;
 
 public class HUDManager : MonoCache
 {
+    [Header("Canvas")]
     public Canvas GameCanvas;
     public Canvas StaticCanvasCoin;
-    private GameManager gameManager;
-    private AudioController audioController;
-    // public Image[] soundIcons;
-    public GameObject joysticks;
-    // public ButtonHandler[] buttonHandler;
+
+    [Space(2)]
+    [Header("Mobile")]
+
+    [Space(2)]
+    [Header("Texts")]
+    public TMP_Text coinsText;
+
     private bool volumeOn = true;
+    private GameManager _gameManager;
 
     protected override void OnEnabled() {
         GraphicSettingsYG.onQualityChange += OnQualityChange;
@@ -29,15 +31,16 @@ public class HUDManager : MonoCache
     private void Awake() {
         YandexGame.GameReadyAPI();
         YandexGame.StickyAdActivity(true);
-        audioController = FindObjectOfType<AudioController>();
-        gameManager = FindObjectOfType<GameManager>();
+        _gameManager = GetComponent<GameManager>();
+        
         if (PlayerPrefs.HasKey("GQuality")) {
             QualitySettings.SetQualityLevel(PlayerPrefs.GetInt("GQuality"));
         } OnQualityChange();
+        UpdateCoinsText();
     }
 
     public void OnQualityChange() {
-        // PlayerPrefs.SetInt("GQuality", qualityDropdown.value);
+        /* PlayerPrefs.SetInt("GQuality", qualityDropdown.value); */
     }
 
     public void CloseFullAd() {
@@ -67,49 +70,9 @@ public class HUDManager : MonoCache
         group.interactable = false;
     }
 
-    public void GoToMainMenu(CanvasGroup group) {
-        group.blocksRaycasts = false;
-        group.interactable = false;
-        group.DOFade(0, 0.5f).OnComplete(() => {
-            gameManager.score = 0;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }).SetLink(group.gameObject);
-    }
-
-    public void PlayButton() {
-        StaticCanvasCoin.gameObject.SetActive(false);
-        gameManager.totalLevelCoin = 0;
-        gameManager.score = 0;
-        gameManager.gameState = GameState.Ready;
-    }
-
-    public void PerkPlayerAdd(int coin) {
-        if (YandexGame.savesData.coins >= coin) {
-            if (YandexGame.savesData.players < 5) {
-                audioController.audioSource.PlayOneShot(audioController.audioClips[8]);
-                YandexGame.savesData.coins -= coin;
-                YandexGame.SaveProgress();
-            } 
-        }
-    }
-
-    public void PerkHealthAdd(int coin) {
-        if (YandexGame.savesData.coins >= coin) {
-            if (YandexGame.savesData.health < 10) {
-                audioController.audioSource.PlayOneShot(audioController.audioClips[8]);
-                YandexGame.savesData.coins -= coin;
-                YandexGame.SaveProgress();
-            }
-        }
-    }
-
-    public void NextLevel(CanvasGroup group) {
-        group.blocksRaycasts = false;
-        group.interactable = false;
-        group.DOFade(0, 0.5f).OnComplete(() => {
-            gameManager.score = 0;
-            SceneManager.LoadScene("Loading");
-        }).SetLink(group.gameObject);
+    public void UpdateCoinsText()
+    {
+        coinsText.text = _gameManager.coins.ToString();
     }
 
     public void ChangeSoundState() {

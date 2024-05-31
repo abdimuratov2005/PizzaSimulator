@@ -9,6 +9,8 @@ public enum NPC_STATE
 {
     Walking,
     Buying,
+    SearchingChair,
+    Staying,
     Waiting,
     Eating,
     Return
@@ -35,12 +37,14 @@ public class NPSClient : TransformUtils
     public int countItem;
     public List<Item> items;
 
+    private GameManager _gameManager;
     private int returnIndexPoint = 0;
 
     private void Awake()
     {
         clients = FindObjectOfType<Clients>();
         agent = GetComponent<NavMeshAgent>();
+        _gameManager = FindObjectOfType<GameManager>();
         SetDefaultPoint();
         SetRandomItemCount();
         countItemText.transform.parent.gameObject.SetActive(false);
@@ -61,19 +65,13 @@ public class NPSClient : TransformUtils
             if (buying && clients.currentZavod.playerStaying)
             {
                 timer += Time.deltaTime;
-                if (timer >= timeToBuy && clients.currentZavod.spawnedItemsList.Count > 0) {
-                    handItem = clients.currentZavod.spawnedItemsList[^1];
+                if (timer >= timeToBuy && clients.currentZavod.getItemsList.Count > 0) {
+                    handItem = clients.currentZavod.getItemsList[^1];
                     handItem.FreezeRigibody();
                     handItem.SetParent(itemPoint);
                     items.Add(handItem);
                     countItem -= 1;
-
-                    if (countItem <= 0)
-                    {
-                        clients.npcClientsBuyer.Remove(this);
-                        clients.npcClientsBought.Add(this);
-                        clients.UpdateCurrentTargets(this, items, currentTarget, agent);
-                    }
+                    _gameManager.coins += 100;
                     UpdateCountItemText();
                     handItem.transform
                         .DOLocalMove(new Vector3(0, items.Count * handItem.transform.localScale.y), 0.2f)
@@ -81,16 +79,34 @@ public class NPSClient : TransformUtils
                         {
                             if (countItem <= 0)
                             {
-                                agent.isStopped = false;
                                 countItem = 0;
                                 timer = 0;
-                                currentTarget = SearchFreePlace();
-                                npcState = NPC_STATE.Eating;
+                                npcState = NPC_STATE.SearchingChair;
                             }
                         })
                         .SetLink(handItem.gameObject);
-                    clients.currentZavod.spawnedItemsList.Remove(handItem);
+                    clients.currentZavod.getItemsList.Remove(handItem);
                 }
+            } else
+            {
+                timer = 0;
+            }
+        }
+        #endregion
+
+        #region Searching Chair
+        if (npcState == NPC_STATE.SearchingChair)
+        {
+            if (clients.stulPoints.Count > 0)
+            {
+                buying = false;
+                agent.isStopped = false;
+                currentTarget = SearchFreePlace();
+                npcState = NPC_STATE.Eating;
+                clients.npcClientsBuyer.Remove(this);
+                clients.npcClientsBought.Add(this);
+                clients.UpdateCurrentTargets(this, items, currentTarget, agent);
+                
             }
         }
         #endregion
@@ -110,7 +126,10 @@ public class NPSClient : TransformUtils
                 {
                     table.items.Remove(lastItemOnTable);
                     items.Remove(lastItemOnTable);
-                    Destroy(lastItemOnTable.gameObject);
+                    if (lastItemOnTable != null)
+                    {
+                        Destroy(lastItemOnTable.gameObject);
+                    }
                     timer = 0;
                 }
             } else
@@ -148,16 +167,20 @@ public class NPSClient : TransformUtils
 
     public Transform SearchFreePlace()
     {
+        Chair RandomChair()
+        {
+            return clients.stulPoints[Random.Range(0, clients.stulPoints.Count)].GetComponent<Chair>();
+        }
+
         Chair randomChair;
 
         do
         {
-            randomChair = clients.stulPoints[Random.Range(0, clients.stulPoints.Count)].GetComponent<Chair>();
+            randomChair = RandomChair();
         }
         while (randomChair.busy);
 
         stol = randomChair.transform;
-        randomChair.busy = true;
         return randomChair.transform;
     }
 
@@ -175,15 +198,8 @@ public class NPSClient : TransformUtils
     {
         if (other.CompareTag("ClienPoint"))
         {
-            UpdateCountItemText();
-        }
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("ClienPoint"))
-        {
             buying = true;
+            UpdateCountItemText();
             npcState = NPC_STATE.Buying;
         }
     }

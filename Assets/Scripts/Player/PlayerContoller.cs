@@ -68,6 +68,14 @@ public class PlayerController : TransformUtils
         #endregion
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.GetComponent<Trigger>())
+        {
+            other.GetComponent<Trigger>().OnEnter();
+        }
+    }
+
     private void OnTriggerStay(Collider other)
     {
         if (other.GetComponent<Zavod>())
@@ -81,6 +89,11 @@ public class PlayerController : TransformUtils
 
             AutoZavodMethod(other.GetComponent<AutoZavod>());
         }
+
+        if (other.GetComponent<BuyTrigger>())
+        {
+            other.GetComponent<BuyTrigger>().playerTriggered = true;
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -88,6 +101,16 @@ public class PlayerController : TransformUtils
         if (other.GetComponent<Zavod>())
         {
             other.GetComponent<Zavod>().playerStaying = false;
+        }
+
+        if (other.GetComponent<Trigger>())
+        {
+            other.GetComponent<Trigger>().OnExit();
+        }
+
+        if (other.GetComponent<BuyTrigger>())
+        {
+            other.GetComponent<BuyTrigger>().playerTriggered = false;
         }
     }
 

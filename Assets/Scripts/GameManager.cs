@@ -12,22 +12,9 @@ public enum GameState {
 
 public class GameManager : MonoBehaviour
 {
-    public GameState gameState;
-    public int totalLevelCoin = 0;
-    public int score = 0;
-    public int currentLevel;
-    public string LEADERBOARD_NAME = "ScoreLeaderboard";
+    public int coins;
 
     private void Awake() {
-        // YandexGame.ResetSaveProgress();
-        // YandexGame.SaveProgress();
-        totalLevelCoin = 0;
-        score = 0;
-        currentLevel = YandexGame.savesData.level;
-
-        if (SceneManager.GetActiveScene().buildIndex != 0) {
-            
-            gameState = GameState.Menu;
-        }
+        coins = YandexGame.savesData.coins;
     }
 }
